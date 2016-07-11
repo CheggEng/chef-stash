@@ -1,4 +1,5 @@
-settings = Stash.settings(node)
+# frozen_string_literal: true
+settings = merge_stash_settings
 
 directory File.dirname(node['stash']['home_path']) do
   owner 'root'
@@ -15,21 +16,6 @@ user node['stash']['user'] do
   supports :manage_home => true
   system true
   action :create
-end
-
-execute 'Generating Self-Signed Java Keystore' do
-  command <<-COMMAND
-    #{node['java']['java_home']}/bin/keytool -genkey \
-      -alias #{settings['tomcat']['keyAlias']} \
-      -keyalg RSA \
-      -dname 'CN=#{node['fqdn']}, OU=Example, O=Example, L=Example, ST=Example, C=US' \
-      -keypass #{settings['tomcat']['keystorePass']} \
-      -storepass #{settings['tomcat']['keystorePass']} \
-      -keystore #{settings['tomcat']['keystoreFile']}
-    chown #{node['stash']['user']}:#{node['stash']['user']} #{settings['tomcat']['keystoreFile']}
-  COMMAND
-  creates settings['tomcat']['keystoreFile']
-  only_if { settings['tomcat']['keystoreFile'] == "#{node['stash']['home_path']}/.keystore" }
 end
 
 directory node['stash']['install_path'] do

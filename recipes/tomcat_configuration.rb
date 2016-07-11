@@ -1,4 +1,4 @@
-settings = Stash.settings(node)
+# frozen_string_literal: true
 stash_version = Chef::Version.new(node['stash']['version'])
 server_xml_path = "#{node['stash']['install_path']}/stash/conf/server.xml"
 
@@ -33,7 +33,6 @@ template server_xml_path do
   end
   owner node['stash']['user']
   mode '0640'
-  variables :tomcat => settings['tomcat']
   notifies :restart, "service[#{node['stash']['product']}]", :delayed
 end
 
@@ -59,7 +58,19 @@ directory "/var/run/#{node['stash']['product']}" do
   action :create
 end
 
-template "#{node['stash']['install_path']}/bitbucket/bin/user.sh" do
+user_sh = 'user.sh'
+if stash_version >= Chef::Version.new('4.6.0')
+  user_sh = 'set-bitbucket-user.sh'
+
+  template "#{node['stash']['install_path']}/bitbucket/bin/set-bitbucket-home.sh" do
+    source 'bitbucket/set-bitbucket-home.sh.erb'
+    owner node['stash']['user']
+    mode '0755'
+    notifies :restart, "service[#{node['stash']['product']}]", :delayed
+  end
+end
+
+template "#{node['stash']['install_path']}/bitbucket/bin/#{user_sh}" do
   source 'bitbucket/user.sh.erb'
   owner node['stash']['user']
   mode '0755'

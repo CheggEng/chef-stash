@@ -1,6 +1,7 @@
-Stash.check_for_old_attributes!(node)
+# frozen_string_literal: true
+handle_old_stash_attributes!
 
-settings = Stash.settings(node)
+settings = merge_stash_settings
 
 package 'unzip'
 package 'rsync'
@@ -42,7 +43,7 @@ cron_d "atlassian-#{node['stash']['product']}-backup-client" do
   day settings['backup']['cron']['day']
   month settings['backup']['cron']['month']
   weekday settings['backup']['cron']['weekday']
-  command "java -jar #{backup_client_install_path}/#{node['stash']['product']}-backup-client.jar"
+  command "cd #{backup_client_install_path} && java -jar #{backup_client_install_path}/#{node['stash']['product']}-backup-client.jar"
   user node['stash']['user']
   action(settings['backup']['cron']['enable'] ? :create : :delete)
 end

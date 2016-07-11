@@ -1,4 +1,5 @@
-settings = Stash.settings(node)
+# frozen_string_literal: true
+settings = merge_stash_settings
 stash_version = Chef::Version.new(node['stash']['version'])
 
 # Config path changed to shared/ from 3.2.0
@@ -21,6 +22,12 @@ if stash_version >= Chef::Version.new('3.2.0')
     mode '0755'
     action :create
     recursive true
+  end
+
+  bash 'update home path permission' do
+    code <<-EOH
+      chown -R #{node['stash']['user']}:#{node['stash']['user']} #{node['stash']['home_path']}
+    EOH
   end
 else
   config_path = '/stash-config.properties'
